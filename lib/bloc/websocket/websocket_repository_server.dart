@@ -6,7 +6,7 @@ import 'package:web_socket_channel/status.dart' as status;
 
 class WebsocketRepositoryServer implements WebsocketRepository{
   
-  final IOWebSocketChannel channel = IOWebSocketChannel.connect("wss://echo.websocket.org");
+  final IOWebSocketChannel channel = IOWebSocketChannel.connect("ws://192.168.1.10:1000/iot_mobile");
 
   @override
   Future<void> sendMessage(String message) async{
