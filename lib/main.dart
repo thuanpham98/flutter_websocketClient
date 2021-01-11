@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:ws_app/bloc/websocket/websocket_bloc.dart';
-import 'package:ws_app/bloc/websocket/websocket_event.dart';
-import 'package:ws_app/bloc/websocket/websocket_state.dart';
-
 import 'app_bloc_delegate.dart';
 import 'service_locator.dart';
 
+import 'package:ws_app/blocs/websocket/websocket_widget.dart';
+import 'package:ws_app/blocs/websocket/websocket_event.dart';
+import 'package:ws_app/blocs/websocket/websocket_bloc.dart';
+
+import 'dart:convert';
+
 void main() async{
-  // Crashlytics.instance.enableInDevMode = true;
-  // FlutterError.onError = Crashlytics.instance.recordFlutterError;
   Bloc.observer = AppBlocDelegate();
 
   try {
@@ -23,6 +22,7 @@ void main() async{
 }
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,39 +49,57 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState(){
     super.initState();
-    GetIt.I<WebsocketBloc>().add(WebsocketEventConnect("he"));
-    
   }
-  int count=0;
+  bool count=false;
 
   @override
   Widget build(BuildContext context) {
+
+    String test = jsonEncode({'action':"onMessage", 'data':{"pin" : count}, 'id': "flutter"});
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Center(
-        child: BlocProvider<WebsocketBloc>(
-          create: (context) =>GetIt.I<WebsocketBloc>()..add(WebsocketEventSend("Thuận nek")),
-          child: BlocBuilder<WebsocketBloc,WebsocketState>(
-            builder: (BuildContext context , WebsocketState state){
-              print(state);
-              if(state is WebsocketConnected){
-                return Container(
-                  child: Column(
-                    children: [
-                      Text(state.result),
-                      FloatingActionButton(onPressed: () async{
-                        GetIt.I<WebsocketBloc>().add(WebsocketEventSend("đếm ${count}"));
-                        // GetIt.I<WebsocketBloc>().add(WebsocketEventConnect("di"));
-                        count++;
-                      })
-                    ],
-                  )
-                );
-              }return CircularProgressIndicator();
-            },
-          ),
+        child: WsBlocWidget(
+          builder: (BuildContext context , String message){
+            return Container(
+              child: Column(
+                children: [
+                  Text(message),
+                  SizedBox(height: 50,),
+                  FloatingActionButton(
+                    onPressed: () async{
+                      count=!count;
+                      test = jsonEncode({'action':"onMessage", 'data':{"pin" : count}, 'id': "flutter"});
+                      GetIt.I<WebsocketBloc>().add(WsEventSend(test));
+                    }
+                  ),
+                  FloatingActionButton(
+                    backgroundColor: Colors.red,
+                    onPressed: () async{
+                      // count=!count;
+                      // test = jsonEncode({'action':"onMessage", 'data':{"pin" : count}, 'id': "flutter"});
+                      GetIt.I<WebsocketBloc>().add(WsEventDisconnect());
+                    }
+                  ),
+                  FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    onPressed: () async{ 
+
+                      locator.resetLazySingleton<WebsocketBloc>(
+                        instance: GetIt.I<WebsocketBloc>(),
+                      );
+                      GetIt.I<WebsocketBloc>()..add(WsEventConnect())
+                      ..add(WsEventSend(jsonEncode({'action':"connect"})));
+                    }
+                  ),
+                ],
+              ),
+            );
+          },
+          loading: CircularProgressIndicator(),
         ),
       ),
     );

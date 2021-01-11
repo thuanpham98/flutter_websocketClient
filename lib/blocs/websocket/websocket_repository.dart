@@ -5,10 +5,7 @@ import 'dart:async';
 abstract class WebsocketRepository {
   Future<void> sendMessage(String message);
 
-  // Future<void> deleteDevice(Device device);
-
   Future<Stream<dynamic>> messages();
 
-  // Future<void> updateDevice(Device device);
-
+  Future<void> disconnect();
 }
