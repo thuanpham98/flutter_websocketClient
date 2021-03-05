@@ -45,10 +45,10 @@ class WebsocketBloc extends Bloc<WsEvent, WsState> {
         (message) {
           add(WsEventReceive(message));
         },
-        // onError: () async{
-        //   await Future.delayed(Duration(seconds: 3));
-        //   add(WsEventReconnect());
-        // }
+        onError: () async{
+          await Future.delayed(Duration(seconds: 3));
+          add(WsEventReconnect());
+        }
       );
     }catch(_){
       yield WsStateConnectFail();
